@@ -1,14 +1,23 @@
 #include "Model.h"
 
-Model::Model(const std::string& file) : file(file) {
+Model::Model(const std::string& file, const glm::vec3& initialPosition, const glm::vec3& initialRotation, const glm::vec3& initialScale)
+    : file(file), position(initialPosition), rotation(initialRotation), scale(initialScale) {
     loadModel(file);
 }
 
 void Model::Draw(Shader& shader, Camera& camera) {
     for (size_t i = 0; i < meshes.size(); ++i) {
-        meshes[i].Draw(shader, camera, matricesMeshes[i]);
+        glm::mat4 modelMatrix = matricesMeshes[i];
+        // Aplicar posição, rotação e escala do modelo
+        modelMatrix = glm::translate(modelMatrix, position);
+        modelMatrix = glm::rotate(modelMatrix, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+        modelMatrix = glm::rotate(modelMatrix, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+        modelMatrix = glm::rotate(modelMatrix, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+        modelMatrix = glm::scale(modelMatrix, scale);
+        meshes[i].Draw(shader, camera, modelMatrix);
     }
 }
+
 
 std::vector<unsigned char> Model::getData() {
     std::ifstream fileStream(file, std::ios::binary | std::ios::ate);
@@ -39,6 +48,11 @@ void Model::loadModel(const std::string& file) {
 
 void Model::processNode(aiNode* node, const aiScene* scene, const glm::mat4& parentTransform) {
     glm::mat4 nodeTransform = parentTransform * AssimpGLMHelpers::ConvertMatrixToGLMFormat(node->mTransformation);
+    nodeTransform = glm::translate(nodeTransform, position);
+    nodeTransform = glm::rotate(nodeTransform, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+    nodeTransform = glm::rotate(nodeTransform, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+    nodeTransform = glm::rotate(nodeTransform, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+    nodeTransform = glm::scale(nodeTransform, scale);
     for (size_t i = 0; i < node->mNumMeshes; ++i) {
         aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
         meshes.push_back(processMesh(mesh, scene, nodeTransform));
@@ -149,6 +163,7 @@ std::vector<glm::vec3> Model::groupFloatsVec3(const std::vector<float>& floatVec
 
 std::vector<Vertex> Model::assembleVertices(const std::vector<glm::vec3>& positions, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& texUVs) {
     std::vector<Vertex> vertices;
+
     for (size_t i = 0; i < positions.size(); ++i) {
         // Verifique se há coordenadas de textura suficientes para cada vértice
         if (i < texUVs.size()) {
@@ -159,5 +174,7 @@ std::vector<Vertex> Model::assembleVertices(const std::vector<glm::vec3>& positi
             vertices.push_back(Vertex{ positions[i], normals[i], glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(0.0f, 0.0f) });
         }
     }
+
+
     return vertices;
 }

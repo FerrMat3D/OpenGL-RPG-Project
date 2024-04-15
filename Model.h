@@ -22,11 +22,16 @@ struct LoadedTexture {
 
 class Model {
 public:
-    Model(const std::string& file);
+    Model(const std::string& file, const glm::vec3& initialPosition, const glm::vec3& initialRotation, const glm::vec3& initialScale);
     void Draw(Shader& shader, Camera& camera);
     std::vector<unsigned char> getData();
+    glm::vec3 position;
+    glm::vec3 rotation;
+    glm::vec3 scale;
 
 private:
+
+
     std::string file;
     const aiScene* scene; // Guarda a cena carregada pelo Assimp
     std::vector<Mesh> meshes;

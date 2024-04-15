@@ -147,6 +147,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AddModel.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="EBO.cpp" />
     <ClCompile Include="glad.c" />
@@ -166,6 +167,7 @@
     <None Include="light.vert" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AddModel.h" />
     <ClInclude Include="AssimpGLMHelpers.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="EBO.h" />

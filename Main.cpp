@@ -1,7 +1,7 @@
 
 //------------------------------
 
-#include"Model.h"
+#include"AddModel.h"
 
 
 
@@ -125,6 +125,7 @@ int main()
 	glm::mat4 lightModel = glm::mat4(1.0f);
 	lightModel = glm::translate(lightModel, lightPos);
 
+
 	shaderProgram.Activate();
 	glUniform4f(glGetUniformLocation(shaderProgram.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
 	glUniform3f(glGetUniformLocation(shaderProgram.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
@@ -132,10 +133,9 @@ int main()
 
 
 
-	const char* modelFile = "models/scene/firstMap.gltf";
 
-	// Criar uma instância do modelo
-	Model model(modelFile);
+	AddModel construtorDeModelos;
+
 
 
 
@@ -148,11 +148,8 @@ int main()
 		glClearColor(0.0f, 0.3f, 0.8f, 1.0f);
 		// Clean the back buffer and assign the new color to it
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
-
-
 		camera.Inputs(window);
+		construtorDeModelos.Inputs(window);
 		camera.updateMatrix(60.0f,0.1f,1300.0f);
 
 		int width, height;
@@ -161,7 +158,19 @@ int main()
 
 		camera.updateOnResizeWindow(width, height);
 
-		model.Draw(shaderProgram,camera);
+
+
+		for (int i = 0; i < construtorDeModelos.models.size(); i++) {
+			Model& currentModel = *construtorDeModelos.models[i].model;
+			std::string currentModelFile = construtorDeModelos.models[i].file;
+
+			// Faça o que precisar com o nome do arquivo do modelo
+			std::cout << "Arquivo do modelo atual: " << currentModelFile << std::endl;
+
+			// Desenhe o modelo atual
+			currentModel.Draw(shaderProgram, camera);
+		}
+
 
 		// Tell OpenGL which Shader Program we want to use
 		shaderProgram.Activate();
@@ -171,8 +180,8 @@ int main()
 
 		// Assigns a value to the uniform; NOTE: Must always be done after activating the Shader Program
 
-
-
+	//	construtorDeModelos.currentCameraLocation(camera.Position);
+		
 
 		// Swap the back buffer with the front buffer
 		glfwSwapBuffers(window);

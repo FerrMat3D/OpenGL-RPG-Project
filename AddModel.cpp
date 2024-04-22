@@ -48,7 +48,7 @@ void AddModel::AddModelOnRuntime() {
 
 	glm::vec3 modelPos = glm::vec3(randomX, randomY, randomZ);
 	glm::vec3 modelRot = glm::vec3(randomX, randomY, randomZ);
-	glm::vec3 modelSca = glm::vec3(randomX/8, randomX / 8, randomX /8);
+	glm::vec3 modelSca = glm::vec3(1, 1, 1);
 
 	assembleModels(modelFile, modelPos, modelRot, modelSca);
 }

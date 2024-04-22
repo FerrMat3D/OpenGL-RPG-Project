@@ -2,6 +2,7 @@
 //------------------------------
 
 #include"AddModel.h"
+#include "physX.h"
 
 
 
@@ -67,6 +68,25 @@ MessageCallback(GLenum source,
 
 int main()
 {
+
+
+	
+
+	PhysX physicsInstance;
+
+	physicsInstance.init();
+
+
+	
+
+
+	//Create Simulation
+
+	//Run Simulation
+
+
+
+
 	// Initialize GLFW
 	glfwInit();
 
@@ -140,17 +160,22 @@ int main()
 
 
 
-
 	// Main while loop
 	while (!glfwWindowShouldClose(window))
 	{
+
+
+		physicsInstance.physxUpdate();
+
+
+
 		// Specify the color of the background
 		glClearColor(0.0f, 0.3f, 0.8f, 1.0f);
 		// Clean the back buffer and assign the new color to it
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		camera.Inputs(window);
 		construtorDeModelos.Inputs(window);
-		camera.updateMatrix(60.0f,0.1f,1300.0f);
+		camera.updateMatrix(60.0f,0.1f,50300.0f);
 
 		int width, height;
 		glfwGetWindowSize(window, &width, &height);
@@ -164,8 +189,41 @@ int main()
 			Model& currentModel = *construtorDeModelos.models[i].model;
 			std::string currentModelFile = construtorDeModelos.models[i].file;
 
+		
+			if (!construtorDeModelos.models[i].physX && construtorDeModelos.models[i].body == NULL) {
+
+				construtorDeModelos.models[i].body = physicsInstance.createObject(construtorDeModelos.models[i].initialPosition, construtorDeModelos.models[i].initialRotation, construtorDeModelos.models[i].initialScale, construtorDeModelos.models[i].body);
+
+				construtorDeModelos.models[i].physX = true;
+			}
+			 if (construtorDeModelos.models[i].body != NULL) {
+				physx::PxTransform globalTm = construtorDeModelos.models[i].body->getGlobalPose();
+				physx::PxVec3 position = globalTm.p;
+				physx::PxQuat rotation = globalTm.q;
+				physx::PxVec3 axis;
+
+			
+				float posX = position.x;
+				float posY = position.y;
+				float posZ = position.z;
+				//std::cout << "Arquivo do modelo atual: " <<  << std::endl;
+			
+				currentModel.position = glm::vec3(-posX  , -posY , -posZ);
+				currentModel.rotation.w = rotation.w*360;
+				currentModel.rotation.x = rotation.x*360;
+				currentModel.rotation.y = rotation.y*360;
+				currentModel.rotation.z = rotation.z*360;
+
+
+
+			}
+
+	
+
 			// Faça o que precisar com o nome do arquivo do modelo
-			std::cout << "Arquivo do modelo atual: " << currentModelFile << std::endl;
+		
+
+	
 
 			// Desenhe o modelo atual
 			currentModel.Draw(shaderProgram, camera);

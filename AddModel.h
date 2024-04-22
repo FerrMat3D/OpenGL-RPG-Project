@@ -4,6 +4,8 @@
 #include"Model.h"
 #include <cstdlib> // Para a função rand()
 #include <ctime>   // Para a função time()
+#include<physx/PxPhysics.h>
+#include<physx/PxPhysicsAPI.h>
 
 
 struct Models {
@@ -11,6 +13,8 @@ struct Models {
      glm::vec3 initialPosition;
      glm::vec3 initialRotation;
      glm::vec3 initialScale;
+	 physx::PxRigidDynamic* body;
+	 bool physX = false;
     Model* model;
 };
 

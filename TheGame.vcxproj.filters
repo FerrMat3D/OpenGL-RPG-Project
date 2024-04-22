@@ -57,6 +57,9 @@
     <ClCompile Include="AddModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="physX.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="default.vert">
@@ -101,6 +104,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="AddModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="physX.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

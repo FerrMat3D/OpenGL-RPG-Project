@@ -28,13 +28,14 @@ public:
     glm::vec3 position;
     glm::quat rotation;
     glm::vec3 scale;
+    std::vector<Mesh> meshes;
 
 private:
 
 
     std::string file;
     const aiScene* scene; // Guarda a cena carregada pelo Assimp
-    std::vector<Mesh> meshes;
+  
     std::vector<glm::mat4> matricesMeshes;
     std::vector<LoadedTexture> loadedTextures; // Guarda texturas já carregadas
 

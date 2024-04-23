@@ -5,6 +5,8 @@
 #include<glm/glm.hpp>
 #include<physx/PxPhysics.h>
 #include<physx/PxPhysicsAPI.h>
+#include"Mesh.h"
+
 
 class PhysX {
 
@@ -26,7 +28,9 @@ class PhysX {
 
 
 		void init();
-		physx::PxRigidDynamic* createObject(glm::vec3 initialPosition, glm::vec3 initialRotate, glm::vec3 initialScale, physx::PxRigidDynamic* body);
+		void setupCommonCookingParams(physx::PxCookingParams& params, bool skipMeshCleanup, bool skipEdgeData);
+		physx::PxRigidDynamic* createObject(glm::vec3 initialPosition, glm::vec3 initialRotate, glm::vec3 initialScale, physx::PxRigidDynamic* dBody);
+		physx::PxRigidStatic* createCustomMesh(std::vector<Mesh>& meshes, physx::PxRigidStatic* sBody);
 		void physxUpdate();
 };
 

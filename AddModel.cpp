@@ -7,14 +7,16 @@ AddModel::AddModel() {
 	glm::vec3 modelPos = glm::vec3(0.0f, 0.0f, 0.0f);
 	glm::vec3 modelRot = glm::vec3(0.0f, 0.0f, 0.0f);
 	glm::vec3 modelSca = glm::vec3(1.0, 1.0f, 1.0f);
-	assembleModels(modelFile, modelPos, modelRot, modelSca);
+	assembleModels(modelFile, modelPos, modelRot, modelSca, true);
 
 }
 
 
-std::vector<Models> AddModel::assembleModels(const std::string& file, const glm::vec3& initialPosition, const glm::vec3& initialRotation, const glm::vec3& initialScale) {
+std::vector<Models> AddModel::assembleModels(const std::string& file, const glm::vec3& initialPosition, const glm::vec3& initialRotation, const glm::vec3& initialScale, const bool isStatic) {
 
-		models.push_back(Models{ file, initialPosition, initialRotation, initialScale });
+		models.push_back(Models{ file, initialPosition, initialRotation, initialScale, NULL, NULL, isStatic });
+
+
 		// Inicialize o modelo recém-adicionado
 		models.back().model = new Model(file, initialPosition, initialRotation, initialScale);
 	
@@ -30,7 +32,7 @@ void AddModel::deleteModels() {
 	glm::vec3 modelPos = glm::vec3(0.0f, 0.0f, 0.0f);
 	glm::vec3 modelRot = glm::vec3(0.0f, 0.0f, 0.0f);
 	glm::vec3 modelSca = glm::vec3(1.0, 1.0f, 1.0f);
-	assembleModels(modelFile, modelPos, modelRot, modelSca);
+	assembleModels(modelFile, modelPos, modelRot, modelSca, true);
 
 }
 
@@ -50,7 +52,7 @@ void AddModel::AddModelOnRuntime() {
 	glm::vec3 modelRot = glm::vec3(randomX, randomY, randomZ);
 	glm::vec3 modelSca = glm::vec3(1, 1, 1);
 
-	assembleModels(modelFile, modelPos, modelRot, modelSca);
+	assembleModels(modelFile, modelPos, modelRot, modelSca, false);
 }
 
 
@@ -60,7 +62,7 @@ void AddModel::Inputs(GLFWwindow* window) {
 	// Handles key inputs
 	static bool keyPressed = false; // Variável estática para controlar se a tecla foi pressionada anteriormente
 
-	if (glfwGetKey(window, GLFW_KEY_8) == GLFW_PRESS &&!keyPressed) {
+	if (glfwGetKey(window, GLFW_KEY_8) == GLFW_PRESS) {
 		// Adiciona o modelo em tempo de execução apenas se a tecla 8 for pressionada e não tiver sido pressionada anteriormente
 		AddModelOnRuntime();
 		keyPressed = true; // Define a variável de controle como verdadeira para indicar que a tecla foi pressionada

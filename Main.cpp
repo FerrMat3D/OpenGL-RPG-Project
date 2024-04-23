@@ -189,39 +189,33 @@ int main()
 			Model& currentModel = *construtorDeModelos.models[i].model;
 			std::string currentModelFile = construtorDeModelos.models[i].file;
 
+			
 		
-			if (!construtorDeModelos.models[i].physX && construtorDeModelos.models[i].body == NULL) {
-
-				construtorDeModelos.models[i].body = physicsInstance.createObject(construtorDeModelos.models[i].initialPosition, construtorDeModelos.models[i].initialRotation, construtorDeModelos.models[i].initialScale, construtorDeModelos.models[i].body);
-
+			if (!construtorDeModelos.models[i].physX && construtorDeModelos.models[i].dBody == NULL && !construtorDeModelos.models[i].isStatic) {
+				construtorDeModelos.models[i].dBody = physicsInstance.createObject(construtorDeModelos.models[i].initialPosition, construtorDeModelos.models[i].initialRotation, construtorDeModelos.models[i].initialScale, construtorDeModelos.models[i].dBody);
 				construtorDeModelos.models[i].physX = true;
 			}
-			 if (construtorDeModelos.models[i].body != NULL) {
-				physx::PxTransform globalTm = construtorDeModelos.models[i].body->getGlobalPose();
+
+			 if (construtorDeModelos.models[i].dBody != NULL && !construtorDeModelos.models[i].isStatic) {
+				physx::PxTransform globalTm = construtorDeModelos.models[i].dBody->getGlobalPose();
 				physx::PxVec3 position = globalTm.p;
 				physx::PxQuat rotation = globalTm.q;
 				physx::PxVec3 axis;
-
-			
+				rotation.normalize();
 				float posX = position.x;
 				float posY = position.y;
 				float posZ = position.z;
-				//std::cout << "Arquivo do modelo atual: " <<  << std::endl;
-			
 				currentModel.position = glm::vec3(-posX  , -posY , -posZ);
-				currentModel.rotation.w = rotation.w*360;
-				currentModel.rotation.x = rotation.x*360;
-				currentModel.rotation.y = rotation.y*360;
-				currentModel.rotation.z = rotation.z*360;
-
-
-
+				glm::vec3 euler = glm::eulerAngles(glm::quat(rotation.w, rotation.x, rotation.y, rotation.z));
+				currentModel.rotation.x = glm::degrees(euler.x);
+				currentModel.rotation.y = glm::degrees(euler.y);
+				currentModel.rotation.z = glm::degrees(euler.z);
 			}
 
-	
-
-			// Faça o que precisar com o nome do arquivo do modelo
-		
+			 if (!construtorDeModelos.models[i].physX && construtorDeModelos.models[i].sBody == NULL && construtorDeModelos.models[i].isStatic) {
+				 construtorDeModelos.models[i].sBody = physicsInstance.createCustomMesh(currentModel.meshes,construtorDeModelos.models[i].sBody);
+				 construtorDeModelos.models[i].physX = true;
+			 }
 
 	
 

@@ -13,7 +13,9 @@ struct Models {
      glm::vec3 initialPosition;
      glm::vec3 initialRotation;
      glm::vec3 initialScale;
-	 physx::PxRigidDynamic* body;
+	 physx::PxRigidDynamic* dBody;
+	 physx::PxRigidStatic* sBody;
+	 bool isStatic = false;
 	 bool physX = false;
     Model* model;
 };
@@ -26,7 +28,7 @@ class AddModel
 
 		AddModel();
 
-		std::vector<Models> assembleModels(const std::string& file, const glm::vec3& initialPosition, const glm::vec3& initialRotation, const glm::vec3& initialScale);
+		std::vector<Models> assembleModels(const std::string& file, const glm::vec3& initialPosition, const glm::vec3& initialRotation, const glm::vec3& initialScale, const bool isStatic);
 
 		
 

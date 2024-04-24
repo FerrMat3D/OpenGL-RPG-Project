@@ -20,7 +20,7 @@ void PhysX::init(){
 	physx::PxPvdTransport* transport = physx::PxDefaultPvdSocketTransportCreate("127.0.0.1", 5425, 10);
 	mPvd->connect(*transport, physx::PxPvdInstrumentationFlag::eALL);
 	mTolerancesScale.length = 100;
-	mTolerancesScale.speed = 981;
+	mTolerancesScale.speed = 10;
 	mPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *mFoundation, mTolerancesScale, true, mPvd);
 	physx::PxSceneDesc sceneDesc(mPhysics->getTolerancesScale());
 	sceneDesc.gravity = physx::PxVec3(0.0f, -9.81f, 0.0f);
@@ -40,21 +40,27 @@ void PhysX::init(){
 
 }
 
+physx::PxRigidDynamic* PhysX::createObject(glm::vec3 initialPosition, glm::vec3 initialRotate, glm::vec3 initialScale, physx::PxRigidDynamic* dBody) {
 
-physx::PxRigidDynamic* PhysX::createObject(glm::vec3 initialPosition, glm::vec3 initialRotate, glm::vec3 initialScale, physx::PxRigidDynamic* dBody){
 
-	
 
-	mMaterial = PhysX::mPhysics->createMaterial(0.5f, 0.5f, 0.5f);
-	physx::PxShape* shape = mPhysics->createShape(physx::PxBoxGeometry(initialScale.x, initialScale.y, initialScale.z), *mMaterial);
+	mMaterial = PhysX::mPhysics->createMaterial(0.2f, 0.2f, 0.2f);
+	physx::PxShape* shape = mPhysics->createShape(
+		physx::PxBoxGeometry(
+			static_cast<physx::PxReal>(initialScale.x/1.99f),
+			static_cast<physx::PxReal>(initialScale.y/1.99f),
+			static_cast<physx::PxReal>(initialScale.z/1.99f)
+		),
+		*mMaterial
+	);
 
-	physx::PxTransform localTm(physx::PxVec3(initialPosition.x, initialPosition.y, initialPosition.z)); // Ajustado para uma posição mais alta
+	physx::PxTransform localTm(physx::PxVec3(initialPosition.x, initialPosition.y +10.0f, initialPosition.z)); // Ajustado para uma posição mais alta
 	dBody = mPhysics->createRigidDynamic(localTm);
 	dBody->attachShape(*shape);
 	physx::PxRigidBodyExt::updateMassAndInertia(*dBody, 10.0f);
 	mScene->addActor(*dBody);
 	shape->release();
-	
+
 
 	return dBody;
 }
@@ -62,85 +68,110 @@ physx::PxRigidDynamic* PhysX::createObject(glm::vec3 initialPosition, glm::vec3 
 
 physx::PxRigidStatic* PhysX::createCustomMesh(std::vector<Mesh>& meshes, physx::PxRigidStatic* sBody) {
 
+
+	if (meshes.data() != NULL) {
+
 	mMaterial = PhysX::mPhysics->createMaterial(0.5f, 0.5f, 0.5f);
 	// Criar uma malha de triângulos
 	physx::PxTriangleMeshDesc meshDesc;
 
-	if(meshes.data() != NULL){
+		
+	float scaleFactor = 10.0f;
 
-	// Alocar e preencher o array de vértices convertidos
+	// Alocar e preencher o array de vértices convertidos com a escala aplicada
 	physx::PxVec3* verticesArray = new physx::PxVec3[meshes.data()->vertices.size()];
 	for (size_t i = 0; i < meshes.data()->vertices.size(); ++i) {
-		verticesArray[i] = physx::PxVec3(meshes.data()->vertices[i].position.x, meshes.data()->vertices[i].position.y, meshes.data()->vertices[i].position.z);
+		verticesArray[i] = physx::PxVec3(-meshes.data()->vertices[i].position.x * scaleFactor,
+			-meshes.data()->vertices[i].position.y * scaleFactor,
+			-meshes.data()->vertices[i].position.z * scaleFactor);
 	}
 	
-	meshDesc.points.data = verticesArray;
-	meshDesc.points.count = meshes.data()->vertices.size();
-	meshDesc.points.stride = sizeof(float) * 3;
+			meshDesc.points.data = verticesArray;
+			meshDesc.points.count = meshes.data()->vertices.size();
+			meshDesc.points.stride = sizeof(physx::PxVec3);
 
-	meshDesc.triangles.data = meshes.data()->indices.data();
-	meshDesc.triangles.count = meshes.data()->indices.size();
-	meshDesc.triangles.stride = sizeof(GLuint) *3 ;
 
-	//meshDesc.flags |= physx::PxMeshFlag::e16_BIT_INDICES;
+
+			std::vector<physx::PxU32> invertedIndices;
+				invertedIndices.reserve(meshes.data()->indices.size());
+				for (size_t i = 0; i < meshes.data()->indices.size(); i += 3) {
+					invertedIndices.push_back(meshes.data()->indices[i]);     // Índice do terceiro vértice
+					invertedIndices.push_back(meshes.data()->indices[i + 1]); // Índice do segundo vértice
+					invertedIndices.push_back(meshes.data()->indices[i + 2]); // Índice do primeiro vértice
+				}
+			
+
+			meshDesc.triangles.data = invertedIndices.data();
+			meshDesc.triangles.count = invertedIndices.size();
+			meshDesc.triangles.stride = sizeof(physx::PxU32) * 3 ;
+
+			//meshDesc.flags |= physx::PxMeshFlag::e16_BIT_INDICES;
 
 	
-	physx::PxTolerancesScale scale;
-	physx::PxCookingParams params(scale);
+			physx::PxTolerancesScale scale;
+			physx::PxCookingParams params(scale);
+	
 
-	params.midphaseDesc = physx::PxMeshMidPhase::eBVH34;
+			params.midphaseDesc = physx::PxMeshMidPhase::eBVH34;
+			params.midphaseDesc.mBVH34Desc.numPrimsPerLeaf = static_cast<uint32_t>(3);
 
-	bool skipMeshCleanup = false;
 
-	setupCommonCookingParams(params, skipMeshCleanup, true);
-
-	float numPrimsPerLeaf = static_cast<float>(meshes.data()->indices.size())  / meshes.data()->vertices.size();
+			setupCommonCookingParams(params, false, false);
+		
+		
 
 	// Cooking mesh with less triangles per leaf produces larger meshes with better runtime performance
 	// and worse cooking performance. Cooking time is better when more triangles per leaf are used.
-	params.midphaseDesc.mBVH34Desc.numPrimsPerLeaf = static_cast<uint32_t>(numPrimsPerLeaf);
+			
 
-#if defined(PX_CHECKED) || defined(PX_DEBUG)
-	// If DISABLE_CLEAN_MESH is set, the mesh is not cleaned during the cooking. 
-	// We should check the validity of provided triangles in debug/checked builds though.
-	if (skipMeshCleanup)
-	{
-		PX_ASSERT(PxValidateTriangleMesh(params, meshDesc));
-	}
-#endif // DEBUG
+		
 
-	physx::PxTriangleMesh* triMesh = NULL;
-	physx::PxU32 meshSize = 0;
 
-	// The cooked mesh may either be saved to a stream for later loading, or inserted directly into PxPhysics.
+			physx::PxTriangleMesh* triMesh = NULL;
+			physx::PxU32 meshSize = 0;
+
+			// The cooked mesh may either be saved to a stream for later loading, or inserted directly into PxPhysics.
 	
 
 	
-		physx::PxDefaultMemoryOutputStream outBuffer;
-		PxCookTriangleMesh(params, meshDesc, outBuffer);
+			physx::PxDefaultMemoryOutputStream outBuffer;
+			PxCookTriangleMesh(params, meshDesc, outBuffer);
 
-		physx::PxDefaultMemoryInputData stream(outBuffer.getData(), outBuffer.getSize());
-		triMesh = mPhysics->createTriangleMesh(stream);
+			physx::PxDefaultMemoryInputData stream(outBuffer.getData(), outBuffer.getSize());
+			triMesh = mPhysics->createTriangleMesh(stream);
 
-		meshSize = outBuffer.getSize();
+			meshSize = outBuffer.getSize();
 	
 
-	// Criar uma forma física a partir da malha de triângulos
-	physx::PxShape* shape = mPhysics->createShape(physx::PxTriangleMeshGeometry(triMesh), *mMaterial);
+			// Criar uma forma física a partir da malha de triângulos
 
-	// Criar o corpo rígido estático
-	physx::PxTransform localTm(physx::PxVec3(0.0f, 0.0f, 0.0f));
-	sBody = mPhysics->createRigidStatic(localTm);
-	sBody->attachShape(*shape);
 
-	// Adicionar o corpo à cena física
-	mScene->addActor(*sBody);
+			physx::PxShape* shape = mPhysics->createShape(physx::PxTriangleMeshGeometry(triMesh), *mMaterial);
 
-	// Liberar memória não utilizada
-	shape->release();
-	triMesh->release();
-	delete[] verticesArray;
-	}
+			// Criar o corpo rígido estático
+			physx::PxTransform localTm(physx::PxVec3(0.0f, 0.0f, 0.0f));
+
+			// Criando uma transformação para girar o corpo em torno do eixo Z
+			//physx::PxQuat rotationZ(physx::PxPi, physx::PxVec3(0.0f, 0.0f, 1.0f)); // Girando 180 graus em torno do eixo Z
+
+
+			//localTm.q = rotationZ;
+
+			sBody = mPhysics->createRigidStatic(localTm);
+			sBody->attachShape(*shape);
+
+			// Adicionar o corpo à cena física
+			mScene->addActor(*sBody);
+
+			// Liberar memória não utilizada
+			shape->release();
+			triMesh->release();
+			delete[] verticesArray;
+		}
+		else {
+
+			return NULL;
+		}
 	return sBody;
 }
 

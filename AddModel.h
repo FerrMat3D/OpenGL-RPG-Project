@@ -28,6 +28,8 @@ class AddModel
 
 		AddModel();
 
+		physx::PxScene* mScene = NULL;
+
 		std::vector<Models> assembleModels(const std::string& file, const glm::vec3& initialPosition, const glm::vec3& initialRotation, const glm::vec3& initialScale, const bool isStatic);
 
 		

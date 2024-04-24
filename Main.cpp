@@ -100,7 +100,7 @@ int main()
 
 
 	// Create a GLFWwindow object of 800 by 800 pixels, naming it "YoutubeOpenGL"
-	GLFWwindow* window = glfwCreateWindow(width, height, "Jogo do Carai", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(width, height, "Teste PhysX - Matheus Ferreira", NULL, NULL);
 	// Error check if the window fails to create
 	if (window == NULL)
 	{
@@ -175,6 +175,7 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		camera.Inputs(window);
 		construtorDeModelos.Inputs(window);
+		construtorDeModelos.mScene = physicsInstance.mScene;
 		camera.updateMatrix(60.0f,0.1f,50300.0f);
 
 		int width, height;
@@ -213,8 +214,19 @@ int main()
 			}
 
 			 if (!construtorDeModelos.models[i].physX && construtorDeModelos.models[i].sBody == NULL && construtorDeModelos.models[i].isStatic) {
-				 construtorDeModelos.models[i].sBody = physicsInstance.createCustomMesh(currentModel.meshes,construtorDeModelos.models[i].sBody);
-				 construtorDeModelos.models[i].physX = true;
+				
+				
+				
+					
+					construtorDeModelos.models[i].sBody = physicsInstance.createCustomMesh(currentModel.meshes,construtorDeModelos.models[i].sBody);
+				
+					if(construtorDeModelos.models[i].sBody != NULL){
+					 construtorDeModelos.models[i].physX = true;
+					}
+				
+
+					
+
 			 }
 
 	

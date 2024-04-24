@@ -43,8 +43,26 @@ void Model::loadModel(const std::string& file) {
         std::cerr << "ERROR::ASSIMP:: " << importer.GetErrorString() << std::endl;
         return;
     }
+
+    // Verificar se o modelo contém faces com mais de três índices
+    bool hasNonTriangleFaces = false;
+    for (unsigned int i = 0; i < scene->mNumMeshes; ++i) {
+        aiMesh* mesh = scene->mMeshes[i];
+        for (unsigned int j = 0; j < mesh->mNumFaces; ++j) {
+            if (mesh->mFaces[j].mNumIndices != 3) {
+                hasNonTriangleFaces = true;
+                break;
+            }
+        }
+        if (hasNonTriangleFaces) {
+            std::cerr << "WARNING: O modelo contém faces com mais de três índices. Certifique-se de corrigir isso." << std::endl;
+            break;
+        }
+    }
+
     processNode(scene->mRootNode, scene, glm::mat4(1.0f));
 }
+
 
 void Model::processNode(aiNode* node, const aiScene* scene, const glm::mat4& parentTransform) {
     glm::mat4 nodeTransform = parentTransform * AssimpGLMHelpers::ConvertMatrixToGLMFormat(node->mTransformation);

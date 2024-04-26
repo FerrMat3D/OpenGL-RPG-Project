@@ -24,7 +24,7 @@ void PhysX::init(){
 	mPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *mFoundation, mTolerancesScale, true, mPvd);
 	physx::PxSceneDesc sceneDesc(mPhysics->getTolerancesScale());
 	sceneDesc.gravity = physx::PxVec3(0.0f, -9.81f, 0.0f);
-	mDispatcher = physx::PxDefaultCpuDispatcherCreate(2);
+	mDispatcher = physx::PxDefaultCpuDispatcherCreate(std::thread::hardware_concurrency());
 	sceneDesc.cpuDispatcher = mDispatcher;
 	sceneDesc.filterShader = physx::PxDefaultSimulationFilterShader;
 	mScene = mPhysics->createScene(sceneDesc);
@@ -147,7 +147,7 @@ physx::PxRigidStatic* PhysX::createCustomMesh(std::vector<Mesh>& meshes, physx::
 
 
 			physx::PxShape* shape = mPhysics->createShape(physx::PxTriangleMeshGeometry(triMesh), *mMaterial);
-
+		
 			// Criar o corpo rígido estático
 			physx::PxTransform localTm(physx::PxVec3(0.0f, 0.0f, 0.0f));
 

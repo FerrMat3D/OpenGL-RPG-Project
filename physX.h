@@ -6,6 +6,7 @@
 #include<physx/PxPhysics.h>
 #include<physx/PxPhysicsAPI.h>
 #include"Mesh.h"
+#include <thread>
 
 
 class PhysX {

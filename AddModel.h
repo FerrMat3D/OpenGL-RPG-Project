@@ -36,7 +36,7 @@ class AddModel
 
 		std::vector<Models> models;
 
-		void AddModelOnRuntime();
+		void AddModelOnRuntime(int what);
 
 		void deleteModels();
 

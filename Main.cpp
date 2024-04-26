@@ -10,6 +10,27 @@ unsigned int width = 800;
 unsigned int height = 600;
 float aspectRatio = (float)width / (float)height;
 bool fullscreen = false;
+double lastTime = 0.0;
+int frameCount = 0;
+double fps = 0.0;
+
+void showFPS(GLFWwindow* window) {
+    double currentTime = glfwGetTime();
+    double deltaTime = currentTime - lastTime;
+    frameCount++;
+
+    if (deltaTime >= 1.0) {
+        fps = frameCount / deltaTime;
+        std::stringstream ss;
+        ss << "FPS: " << fps;
+
+        glfwSetWindowTitle(window, ss.str().c_str());
+
+        frameCount = 0;
+        lastTime = currentTime;
+    }
+}
+
 
 void framebuffer_size_callback(GLFWwindow* window, int w, int h) {
 	// Ajustar a viewport mantendo o aspect ratio
@@ -65,6 +86,12 @@ MessageCallback(GLenum source,
 	std::cerr << "OpenGL debug message: " << message << std::endl;
 }
 
+void writeLog(const std::string& errorMessage) {
+	std::ofstream logFile("error.log", std::ios::app);
+	std::cerr << "Erro: " << errorMessage << std::endl;
+
+}
+
 
 int main()
 {
@@ -98,6 +125,10 @@ int main()
 	// So that means we only have the modern functions
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+	glfwSwapInterval(1);
+
+	
+	
 
 	// Create a GLFWwindow object of 800 by 800 pixels, naming it "YoutubeOpenGL"
 	GLFWwindow* window = glfwCreateWindow(width, height, "Teste PhysX - Matheus Ferreira", NULL, NULL);
@@ -123,6 +154,9 @@ int main()
 
 	// Introduce the window into the current context
 	glfwMakeContextCurrent(window);
+
+
+
 
 	//Load GLAD so it configures OpenGL
 	gladLoadGL();
@@ -155,10 +189,7 @@ int main()
 
 
 	AddModel construtorDeModelos;
-
-
-
-
+	construtorDeModelos.mScene = physicsInstance.mScene;
 
 	// Main while loop
 	while (!glfwWindowShouldClose(window))
@@ -167,6 +198,7 @@ int main()
 
 		physicsInstance.physxUpdate();
 
+		construtorDeModelos.Inputs(window);
 
 
 		// Specify the color of the background
@@ -174,29 +206,36 @@ int main()
 		// Clean the back buffer and assign the new color to it
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		camera.Inputs(window);
-		construtorDeModelos.Inputs(window);
-		construtorDeModelos.mScene = physicsInstance.mScene;
-		camera.updateMatrix(60.0f,0.1f,50300.0f);
+
+
+
+
+
+
+	
+
+
 
 		int width, height;
+
+
+
 		glfwGetWindowSize(window, &width, &height);
-
-
 		camera.updateOnResizeWindow(width, height);
 
 
+		if(width > 0  && height > 0){
+		camera.updateMatrix(60.0f, 0.1f, 5000.0f);
+
+		}
 
 		for (int i = 0; i < construtorDeModelos.models.size(); i++) {
 			Model& currentModel = *construtorDeModelos.models[i].model;
 			std::string currentModelFile = construtorDeModelos.models[i].file;
-
-			
-		
 			if (!construtorDeModelos.models[i].physX && construtorDeModelos.models[i].dBody == NULL && !construtorDeModelos.models[i].isStatic) {
 				construtorDeModelos.models[i].dBody = physicsInstance.createObject(construtorDeModelos.models[i].initialPosition, construtorDeModelos.models[i].initialRotation, construtorDeModelos.models[i].initialScale, construtorDeModelos.models[i].dBody);
 				construtorDeModelos.models[i].physX = true;
 			}
-
 			 if (construtorDeModelos.models[i].dBody != NULL && !construtorDeModelos.models[i].isStatic) {
 				physx::PxTransform globalTm = construtorDeModelos.models[i].dBody->getGlobalPose();
 				physx::PxVec3 position = globalTm.p;
@@ -212,26 +251,25 @@ int main()
 				currentModel.rotation.y = glm::degrees(euler.y);
 				currentModel.rotation.z = glm::degrees(euler.z);
 			}
-
-			 if (!construtorDeModelos.models[i].physX && construtorDeModelos.models[i].sBody == NULL && construtorDeModelos.models[i].isStatic) {
-				
-				
-				
+				 if (!construtorDeModelos.models[i].physX && construtorDeModelos.models[i].sBody == NULL && construtorDeModelos.models[i].isStatic) {
 					
-					construtorDeModelos.models[i].sBody = physicsInstance.createCustomMesh(currentModel.meshes,construtorDeModelos.models[i].sBody);
-				
+					 try {
+						
+						 construtorDeModelos.models[i].sBody = physicsInstance.createCustomMesh(currentModel.meshes, construtorDeModelos.models[i].sBody);
+						 throw std::runtime_error("Um erro ocorreu ao criar a malha física estática");
+
+					 }
+					 catch (const std::exception& e) {
+						 writeLog("Erro: " + std::string(e.what()));
+						 // O programa continua aqui
+					 }
+					 
+					
 					if(construtorDeModelos.models[i].sBody != NULL){
-					 construtorDeModelos.models[i].physX = true;
-					}
-				
-
-					
-
-			 }
-
-	
-
-			// Desenhe o modelo atual
+						 construtorDeModelos.models[i].physX = true;
+						}
+				 }
+					// Desenhe o modelo atual
 			currentModel.Draw(shaderProgram, camera);
 		}
 
@@ -242,15 +280,17 @@ int main()
 
 		camera.Matrix(shaderProgram, "camMatrix");
 
-		// Assigns a value to the uniform; NOTE: Must always be done after activating the Shader Program
 
-	//	construtorDeModelos.currentCameraLocation(camera.Position);
-		
+
 
 		// Swap the back buffer with the front buffer
 		glfwSwapBuffers(window);
 		// Take care of all GLFW events
 		glfwPollEvents();
+
+			showFPS(window);
+
+
 	}
 
 
